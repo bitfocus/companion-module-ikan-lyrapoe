@@ -112,6 +112,7 @@ export class FixtureManager {
 			adapters: listNetworkAdapters(),
 			timeoutMs,
 			pollCount: 3,
+			rdmTimeoutMs: 1000,
 			httpTimeoutMs: 3000,
 			log: this.#options.log,
 		})

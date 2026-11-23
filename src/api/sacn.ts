@@ -8,6 +8,8 @@ const VECTOR_ROOT_E131_DATA = 0x00000004
 const VECTOR_E131_DATA_PACKET = 0x00000002
 const VECTOR_DMP_SET_PROPERTY = 0x02
 export const SACN_DEFAULT_PRIORITY = 100
+/** The fixtures' factory sACN universe */
+export const SACN_DEFAULT_UNIVERSE = 1
 
 export interface SacnOptions extends TransportOptions {
 	sourceName: string

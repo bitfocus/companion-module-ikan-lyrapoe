@@ -6,6 +6,7 @@ export * from './types.js'
 export * from './artnet.js'
 export * from './sacn.js'
 export * from './http.js'
+export * from './rdm.js'
 export * from './discovery.js'
 export * from './fixtures.js'
 

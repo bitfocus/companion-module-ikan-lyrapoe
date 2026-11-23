@@ -4,13 +4,13 @@ import { DMX_SLOTS, type DmxTransport, type TransportOptions, type UniverseData 
 export const ARTNET_PORT = 6454
 export const ARTNET_ID = Buffer.from('Art-Net\0', 'ascii')
 const OP_DMX = 0x5000
-const PROTOCOL_VERSION = 14
+export const ARTNET_PROTOCOL_VERSION = 14
 
 function buildArtDmx(universe: number, sequence: number, data: UniverseData): Buffer {
 	const packet = Buffer.alloc(18 + DMX_SLOTS)
 	ARTNET_ID.copy(packet, 0)
 	packet.writeUInt16LE(OP_DMX, 8)
-	packet.writeUInt16BE(PROTOCOL_VERSION, 10)
+	packet.writeUInt16BE(ARTNET_PROTOCOL_VERSION, 10)
 	packet[12] = sequence
 	packet[13] = 0 // physical port
 	// 15-bit port-address: net (7 bits) : sub-net (4) : universe (4)

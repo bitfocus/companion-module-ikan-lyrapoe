@@ -3,6 +3,8 @@ import type { EventEmitter } from 'node:events'
 import os from 'node:os'
 import { ARTNET_ID, ARTNET_PORT } from './artnet.js'
 import { fetchFixtureDmxConfig, type FixtureDmxConfig } from './http.js'
+import { fetchRdmDmxAddress } from './rdm.js'
+import { SACN_DEFAULT_UNIVERSE } from './sacn.js'
 
 const OP_POLL = 0x2000
 const OP_POLL_REPLY = 0x2100
@@ -13,6 +15,10 @@ interface ArtNetNode {
 	mac: string
 	/** The fixture model, e.g. "LCX10-POE" */
 	longName: string
+	/** 15-bit Art-Net port-address of the fixture's output */
+	portAddress: number
+	/** GoodOutputA bit 0: the output is set to sACN rather than Art-Net */
+	sacnOutput: boolean
 }
 
 export interface DiscoveredFixture extends ArtNetNode {
@@ -114,6 +120,8 @@ export interface DiscoveryOptions {
 	/** Broadcast addresses and/or fixture IPs to poll */
 	targets: string[]
 	adapters: NetworkAdapter[]
+	/** How long to wait for a fixture to answer RDM before falling back to HTTP */
+	rdmTimeoutMs: number
 	/** Timeout for the per-fixture HTTP config fetch */
 	httpTimeoutMs: number
 	log: (level: 'warn' | 'debug', message: string) => void
@@ -131,6 +139,9 @@ function parseArtPollReply(msg: Buffer, fromIp: string): ArtNetNode | null {
 		ip: fromIp,
 		mac: [...msg.subarray(201, 207)].map((b) => b.toString(16).padStart(2, '0')).join(':'),
 		longName: cstr(44, 108),
+		// Net (7 bits) : Sub-Net (4) : SwOut of the first port (4)
+		portAddress: ((msg[18] & 0x7f) << 8) | ((msg[19] & 0x0f) << 4) | (msg[190] & 0x0f),
+		sacnOutput: (msg[182] & 0x01) !== 0,
 	}
 }
 
@@ -217,13 +228,34 @@ async function discoverArtNetNodes(options: DiscoveryOptions): Promise<ArtNetNod
 	return [...nodes.values()]
 }
 
-/** Discover nodes and enrich each with its DMX address/protocol from the fixture's web API */
+/**
+ * Read a node's DMX config. Lyra-PoE firmware answers RDM but has moved its web API behind a password;
+ * the older Eth2DMX firmware ignores RDM but serves its config over HTTP without one.
+ */
+async function fetchDmxConfig(node: ArtNetNode, options: DiscoveryOptions): Promise<FixtureDmxConfig | null> {
+	const dmxAddress = await fetchRdmDmxAddress(
+		node.ip,
+		node.portAddress,
+		options.createSocket,
+		options.rdmTimeoutMs,
+	).catch((e: unknown) => {
+		options.log('debug', `RDM lookup on ${node.ip} failed: ${e instanceof Error ? e.message : String(e)}`)
+		return null
+	})
+	if (dmxAddress !== null) {
+		return {
+			dmxAddress,
+			protocol: node.sacnOutput ? 'sacn' : 'artnet',
+			artnetUniverse: node.portAddress,
+			// Neither Art-Net nor RDM reports the sACN universe, so assume the factory default
+			sacnUniverse: SACN_DEFAULT_UNIVERSE,
+		}
+	}
+	return fetchFixtureDmxConfig(node.ip, options.httpTimeoutMs).catch(() => null)
+}
+
+/** Discover nodes and enrich each with its DMX address/protocol, over RDM or the fixture's web API */
 export async function discoverFixtures(options: DiscoveryOptions): Promise<DiscoveredFixture[]> {
 	const nodes = await discoverArtNetNodes(options)
-	return Promise.all(
-		nodes.map(async (node) => ({
-			...node,
-			dmx: await fetchFixtureDmxConfig(node.ip, options.httpTimeoutMs).catch(() => null),
-		})),
-	)
+	return Promise.all(nodes.map(async (node) => ({ ...node, dmx: await fetchDmxConfig(node, options) })))
 }
