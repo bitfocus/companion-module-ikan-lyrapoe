@@ -1,24 +1,21 @@
 import {
 	combineRgb,
-	splitRgb,
 	type CompanionButtonStyleProps,
 	type CompanionPresetAction,
 	type CompanionPresetDefinitions,
-	type CompanionPresetFeedback,
 	type CompanionPresetGroupSimple,
 	type CompanionPresetSection,
 } from '@companion-module/base'
 import type { ActionsSchema, FixtureTargetOptions } from './actions.js'
-import type { FeedbacksSchema } from './feedbacks.js'
 import type { ManagedFixture } from './fixtureManager.js'
 import type { ModuleSchema } from './main.js'
 import type IkanInstance from './main.js'
 import { COLOR_MODES } from './api/index.js'
 import { LIGHT_PRESET_BUTTONS } from './lightPresets.js'
-import { fromState, levelSuffix, type LevelParameter, type ValueScale } from './valueScale.js'
+import { Colors, levelPreset, statusPreset, textOn, type LevelTile, type TileState } from './presetTiles.js'
+import { fromState, levelRange, levelSuffix, type LevelParameter, type ValueScale } from './valueScale.js'
 
 type PresetAction = CompanionPresetAction<ActionsSchema>
-type PresetFeedback = CompanionPresetFeedback<FeedbacksSchema>
 
 const WHITE = combineRgb(255, 255, 255)
 const BLACK = combineRgb(0, 0, 0)
@@ -52,13 +49,14 @@ function kelvinColor(kelvin: number, min: number, max: number): number {
 
 /** Button style with black or white text, whichever reads better on the background */
 function buttonStyle(text: string, bgcolor: number): CompanionButtonStyleProps {
-	const { r, g, b } = splitRgb(bgcolor)
-	const dark = r * 0.299 + g * 0.587 + b * 0.114 < 140
-	return { text, size: 'auto', show_topbar: false, color: dark ? WHITE : BLACK, bgcolor }
+	return { text, size: 'auto', show_topbar: false, color: textOn(bgcolor), bgcolor }
 }
 
 // Companion rewrites the connection label in $(...) references when a preset is placed
 const v = (fixtureId: string, suffix: string) => `$(lyra:${fixtureId}_${suffix})`
+
+type StatusLook = { title: string; status: string; accent: number }
+type LevelLook = Omit<LevelTile, 'label' | 'fixtureId'>
 
 /** Build one preset section, either for every fixture (fixture null) or for a single fixture */
 function buildSection(
@@ -79,25 +77,41 @@ function buildSection(
 	// Preset values are written in the user's chosen scale
 	const level = (param: LevelParameter, stateValue: number) => Math.round(fromState(scale, param, stateValue))
 	const intensitySuffix = levelSuffix(scale, 'intensity')
+	const [intensityMin, intensityMax] = levelRange(scale, 'intensity')
 	const intensityStep = scale === 'dmx' ? 25 : 10
 	const intensityRotaryStep = scale === 'dmx' ? 10 : 5
+
+	// Layered tiles follow the fixture's name and are shaded while it is offline
+	const tileBase = fixture
+		? { label: v(fixture.id, 'model'), fixtureId: fixture.id }
+		: { label: label, fixtureId: null }
+	const intensityNow = fixture ? `${v(fixture.id, 'intensity')}${intensitySuffix}` : 'Intensity'
 
 	const button = (
 		suffix: string,
 		name: string,
 		text: string,
 		bgcolor: number,
+		tile: StatusLook,
 		action: PresetAction | null,
-		feedbacks: PresetFeedback[],
+		states: TileState[],
 	): string => {
 		const id = `${sectionId}_${suffix}`
-		presets[id] = {
-			type: 'simple',
-			name: `${label}: ${name}`,
-			style: buttonStyle(text, bgcolor),
-			steps: action ? [{ down: [action], up: [] }] : [],
-			feedbacks,
-		}
+		presets[id] = statusPreset(
+			{ name: `${label}: ${name}`, steps: action ? [{ down: [action], up: [] }] : [] },
+			{ ...tileBase, ...tile, states },
+			{ style: buttonStyle(text, bgcolor) },
+		)
+		return id
+	}
+
+	const levelButton = (suffix: string, name: string, text: string, tile: LevelLook): string => {
+		const id = `${sectionId}_${suffix}`
+		presets[id] = levelPreset(
+			{ name: `${label}: ${name}`, steps: [] },
+			{ ...tileBase, ...tile },
+			{ style: buttonStyle(text, BLACK) },
+		)
 		return id
 	}
 
@@ -108,17 +122,18 @@ function buildSection(
 		adjust: (delta: number) => PresetAction,
 		step: number,
 		keywords: string[],
+		tile: LevelLook | null,
 	): string => {
 		const id = `${sectionId}_${suffix}`
-		presets[id] = {
-			type: 'simple',
+		const shared = {
 			name: `${label}: ${name} (rotary)`,
-			style: buttonStyle(text, GREY),
-			previewStyle: { text: line('Rotary') },
 			steps: [{ down: [], up: [], rotate_left: [adjust(-step)], rotate_right: [adjust(step)] }],
-			feedbacks: [],
 			keywords: ['encoder', 'dial', 'knob', ...keywords],
 		}
+		const simple = { style: buttonStyle(text, GREY), previewStyle: { text: line('Rotary') } }
+		presets[id] = tile
+			? levelPreset(shared, { ...tileBase, ...tile }, simple)
+			: statusPreset(shared, { ...tileBase, title: name, status: 'Rotate', accent: Colors.idle, states: [] }, simple)
 		return id
 	}
 
@@ -128,12 +143,13 @@ function buildSection(
 			'Full',
 			line('FULL'),
 			WHITE,
+			{ title: 'FULL', status: intensityNow, accent: Colors.idle },
 			{ actionId: 'set_intensity', options: { ...selection, intensity: level('intensity', 100) } },
 			[
 				{
-					feedbackId: 'intensity_above',
-					options: { ...selection, threshold: level('intensity', 99) },
+					when: { feedbackId: 'intensity_above', options: { ...selection, threshold: level('intensity', 99) } },
 					style: { bgcolor: combineRgb(0, 200, 0) },
+					accent: Colors.live,
 				},
 			],
 		),
@@ -142,6 +158,7 @@ function buildSection(
 			'Off',
 			line('OFF'),
 			BLACK,
+			{ title: 'OFF', status: intensityNow, accent: Colors.idle },
 			{ actionId: 'set_intensity', options: { ...selection, intensity: level('intensity', 0) } },
 			[],
 		),
@@ -152,6 +169,7 @@ function buildSection(
 				text,
 				line(text),
 				GREY,
+				{ title: text, status: intensityNow, accent: Colors.idle },
 				{ actionId: 'adjust_intensity', options: { ...selection, delta } },
 				[],
 			)
@@ -163,17 +181,29 @@ function buildSection(
 			(delta) => ({ actionId: 'adjust_intensity', options: { ...selection, delta } }),
 			intensityRotaryStep,
 			[],
+			fixture
+				? {
+						title: 'Intensity',
+						value: v(fixture.id, 'intensity'),
+						suffix: intensitySuffix,
+						min: intensityMin,
+						max: intensityMax,
+						accent: Colors.live,
+					}
+				: null,
 		),
 	]
 	// Individual fixtures get Kelvin buttons in their CCT Controls group instead
 	if (!fixture) {
 		for (const cct of [3200, 5600]) {
+			const color = combineRgb(255, 220, 160)
 			control.push(
 				button(
 					`cct${cct}`,
 					`${cct}K`,
 					line(`${cct}K`),
-					combineRgb(255, 220, 160),
+					color,
+					{ title: `${cct}K`, status: 'CCT', accent: color },
 					{ actionId: 'set_cct', options: { ...selection, cct } },
 					[],
 				),
@@ -197,12 +227,14 @@ function buildSection(
 						`${mode.label} Mode`,
 						line(mode.label),
 						BLACK,
+						{ title: mode.label, status: 'Mode', accent: Colors.idle },
 						{ actionId: 'set_mode', options: { fixtures: [fixture.id], mode: mode.id } },
 						[
 							{
-								feedbackId: 'color_mode',
-								options: { fixtures: [fixture.id], mode: mode.id },
+								when: { feedbackId: 'color_mode', options: { fixtures: [fixture.id], mode: mode.id } },
 								style: { bgcolor: combineRgb(0, 0, 200) },
+								accent: Colors.info,
+								status: 'Active',
 							},
 						],
 					),
@@ -213,16 +245,18 @@ function buildSection(
 		const cctLayout = profile.modes.cct
 		if (cctLayout) {
 			const { min, max } = profile.cctRange
-			const ids = CCT_PRESETS.filter((k) => k >= min && k <= max).map((cct) =>
-				button(
+			const ids = CCT_PRESETS.filter((k) => k >= min && k <= max).map((cct) => {
+				const color = kelvinColor(cct, min, max)
+				return button(
 					`cct_${cct}`,
 					`${cct}K`,
 					line(`${cct}K`),
-					kelvinColor(cct, min, max),
+					color,
+					{ title: `${cct}K`, status: 'CCT', accent: color },
 					{ actionId: 'set_cct', options: { ...selection, cct } },
 					[],
-				),
-			)
+				)
+			})
 			ids.push(
 				rotary(
 					'cct_rotary',
@@ -231,6 +265,7 @@ function buildSection(
 					(delta) => ({ actionId: 'adjust_cct', options: { ...selection, delta } }),
 					100,
 					['kelvin'],
+					{ title: 'Kelvin', value: v(fixture.id, 'cct'), suffix: 'K', min, max, accent: Colors.warm },
 				),
 			)
 			if (cctLayout.greenMagenta) {
@@ -241,6 +276,7 @@ function buildSection(
 							gm.label,
 							line(gm.text),
 							gm.color,
+							{ title: gm.text, status: 'G/M', accent: gm.color },
 							{ actionId: 'set_green_magenta', options: { ...selection, value: level('greenMagenta', gm.value) } },
 							[],
 						),
@@ -266,6 +302,7 @@ function buildSection(
 						`HSI ${c.label}`,
 						line(c.label),
 						combineRgb(...c.rgb),
+						{ title: c.label, status: 'HSI', accent: combineRgb(...c.rgb) },
 						{
 							actionId: 'set_hsi',
 							options: { ...selection, hue: c.hue, saturation: level('saturation', c.saturation) },
@@ -287,6 +324,7 @@ function buildSection(
 						`RGB ${c.label}`,
 						line(c.label),
 						combineRgb(...c.rgb),
+						{ title: c.label, status: 'RGB', accent: combineRgb(...c.rgb) },
 						{
 							actionId: 'set_rgb',
 							options: {
@@ -304,18 +342,40 @@ function buildSection(
 
 		const statusLine = (text: string) => `${fixture.name}\\n${text}`
 		const status = [
-			button(
+			levelButton(
 				'status_intensity',
 				'current intensity',
 				statusLine(`${v(fixture.id, 'intensity')}${intensitySuffix}`),
-				BLACK,
-				null,
-				[],
+				{
+					title: 'Intensity',
+					value: v(fixture.id, 'intensity'),
+					suffix: intensitySuffix,
+					min: intensityMin,
+					max: intensityMax,
+					accent: Colors.live,
+				},
 			),
-			button('status_cct', 'current color temperature', statusLine(`${v(fixture.id, 'cct')}K`), BLACK, null, []),
+			levelButton('status_cct', 'current color temperature', statusLine(`${v(fixture.id, 'cct')}K`), {
+				title: 'Kelvin',
+				value: v(fixture.id, 'cct'),
+				suffix: 'K',
+				min: profile.cctRange.min,
+				max: profile.cctRange.max,
+				accent: Colors.warm,
+			}),
 		]
 		if (profile.modeChannel) {
-			status.push(button('status_mode', 'current mode', statusLine(v(fixture.id, 'mode')), BLACK, null, []))
+			status.push(
+				button(
+					'status_mode',
+					'current mode',
+					statusLine(v(fixture.id, 'mode')),
+					BLACK,
+					{ title: 'Mode', status: v(fixture.id, 'mode'), accent: Colors.info },
+					null,
+					[],
+				),
+			)
 		}
 		group('status', 'Status', 'Current values', status)
 	}
@@ -326,45 +386,62 @@ function buildSection(
 /** Recall and save buttons for the first light preset slots */
 function buildLightPresetSection(presets: CompanionPresetDefinitions<ModuleSchema>): CompanionPresetSection {
 	const slots = Array.from({ length: LIGHT_PRESET_BUTTONS }, (_, i) => i + 1)
+	const tileBase = { label: 'Light Preset', fixtureId: null }
 	const recallIds = slots.map((slot) => {
 		const id = `light_preset_recall_${slot}`
-		presets[id] = {
-			type: 'simple',
-			name: `Recall Light Preset ${slot}`,
-			style: buttonStyle(`PRESET\\n${slot}`, GREY),
-			steps: [{ down: [{ actionId: 'recall_light_preset', options: { slot } }], up: [] }],
-			feedbacks: [
-				{
-					feedbackId: 'light_preset_active',
-					options: { slot },
-					style: { bgcolor: combineRgb(0, 200, 0), color: BLACK },
-				},
-			],
-			keywords: ['scene', 'look', 'memory'],
-		}
+		presets[id] = statusPreset(
+			{
+				name: `Recall Light Preset ${slot}`,
+				steps: [{ down: [{ actionId: 'recall_light_preset', options: { slot } }], up: [] }],
+				keywords: ['scene', 'look', 'memory'],
+			},
+			{
+				...tileBase,
+				title: `${slot}`,
+				status: 'Recall',
+				accent: Colors.idle,
+				states: [
+					{
+						when: { feedbackId: 'light_preset_active', options: { slot } },
+						style: { bgcolor: combineRgb(0, 200, 0), color: BLACK },
+						accent: Colors.live,
+						status: 'Active',
+					},
+				],
+			},
+			{ style: buttonStyle(`PRESET\\n${slot}`, GREY) },
+		)
 		return id
 	})
 	const saveIds = slots.map((slot) => {
 		const id = `light_preset_save_${slot}`
-		presets[id] = {
-			type: 'simple',
-			name: `Save Light Preset ${slot}`,
-			style: buttonStyle(`SAVE\\n${slot}`, combineRgb(140, 50, 50)),
-			steps: [
-				{
-					down: [{ actionId: 'save_light_preset', options: { target: 'all', fixtures: [], slot } }],
-					up: [],
-				},
-			],
-			feedbacks: [
-				{
-					feedbackId: 'light_preset_saved',
-					options: { slot },
-					style: { text: `RESAVE\\n${slot}`, bgcolor: combineRgb(200, 0, 0), color: WHITE },
-				},
-			],
-			keywords: ['store', 'scene', 'look', 'memory'],
-		}
+		presets[id] = statusPreset(
+			{
+				name: `Save Light Preset ${slot}`,
+				steps: [
+					{
+						down: [{ actionId: 'save_light_preset', options: { target: 'all', fixtures: [], slot } }],
+						up: [],
+					},
+				],
+				keywords: ['store', 'scene', 'look', 'memory'],
+			},
+			{
+				...tileBase,
+				title: `${slot}`,
+				status: 'Save',
+				accent: Colors.idle,
+				states: [
+					{
+						when: { feedbackId: 'light_preset_saved', options: { slot } },
+						style: { text: `RESAVE\\n${slot}`, bgcolor: combineRgb(200, 0, 0), color: WHITE },
+						accent: Colors.stop,
+						status: 'Resave',
+					},
+				],
+			},
+			{ style: buttonStyle(`SAVE\\n${slot}`, combineRgb(140, 50, 50)) },
+		)
 		return id
 	})
 
