@@ -212,6 +212,29 @@ function buildSection(
 	}
 	group('group', 'Control', fixture ? 'Intensity' : 'Intensity and color temperature', control)
 
+	if (!fixture) {
+		group('discovery', 'Discovery', 'Search for fixtures now, or forget ones that are offline', [
+			button(
+				'search',
+				'Search for Fixtures',
+				line('SEARCH'),
+				GREY,
+				{ title: 'SEARCH', status: '$(lyra:fixture_count) found', accent: Colors.idle },
+				{ actionId: 'discover', options: {} },
+				[],
+			),
+			button(
+				'forget_offline',
+				'Forget Offline Fixtures',
+				line('FORGET\\nOFFLINE'),
+				GREY,
+				{ title: 'FORGET', status: '$(lyra:fixtures_offline) offline', accent: Colors.idle },
+				{ actionId: 'forget_offline_fixtures', options: {} },
+				[],
+			),
+		])
+	}
+
 	// Color groups only per fixture: fixtures can have different supported modes, so "all" doesn't make sense
 	if (fixture) {
 		const { profile } = fixture

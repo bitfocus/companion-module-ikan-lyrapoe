@@ -27,7 +27,7 @@ export function GetConfigFields(): SomeCompanionConfigField[] {
 		{
 			type: 'textinput',
 			id: 'discoveryTargets',
-			label: 'Poll addresses',
+			label: 'Poll Addresses',
 			width: 8,
 			default: '255.255.255.255',
 		},
@@ -56,7 +56,7 @@ export function GetConfigFields(): SomeCompanionConfigField[] {
 		{
 			type: 'dropdown',
 			id: 'valueScale',
-			label: 'Value scale',
+			label: 'Value Scale',
 			description: 'How intensity, saturation, RGB and green/magenta are entered and displayed.',
 			width: 6,
 			default: 'percent',

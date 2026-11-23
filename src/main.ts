@@ -8,6 +8,7 @@ import { UpdatePresets } from './presets.js'
 import { FixtureManager, type ManagedFixture, type StatePatch } from './fixtureManager.js'
 import { createDgramDiscoverySocket } from './api/index.js'
 import { captureLightPreset, LIGHT_PRESET_SLOTS, lightPresetSlotKey, type LightPresets } from './lightPresets.js'
+import { connectionStatus } from './status.js'
 
 export type ModuleSchema = {
 	config: ModuleConfig
@@ -78,17 +79,7 @@ export default class IkanInstance extends InstanceBase<ModuleSchema> {
 				parseDiscoveryTargets(this.config.discoveryTargets),
 				DISCOVERY_TIMEOUT_MS,
 			)
-			const all = this.fixtures.fixtures
-			const online = all.filter((f) => f.online).length
-			// updateStatus is logged by Companion every call, so only report when the counts change
-			const summary = `${online}/${all.length}`
-			if (summary !== this.#lastStatusSummary) {
-				this.#lastStatusSummary = summary
-				if (all.length === 0) this.updateStatus(InstanceStatus.Disconnected, 'No fixtures found')
-				else if (online < all.length)
-					this.updateStatus(InstanceStatus.UnknownWarning, `${online}/${all.length} fixtures online`)
-				else this.updateStatus(InstanceStatus.Ok, `${all.length} fixture${all.length === 1 ? '' : 's'}`)
-			}
+			this.#reportStatus()
 			// Light presets only match while all their fixtures are online
 			if (changed) this.checkFeedbacks('fixture_online', 'light_preset_active')
 		} catch (e) {
@@ -98,6 +89,24 @@ export default class IkanInstance extends InstanceBase<ModuleSchema> {
 		} finally {
 			this.#discovering = false
 		}
+	}
+
+	/** Drop the fixtures that are offline, e.g. ones removed from the rig */
+	forgetOfflineFixtures(): void {
+		const forgotten = this.fixtures.forgetOffline()
+		for (const fixture of forgotten) this.log('info', `Forgot ${fixture.name} at ${fixture.ip}`)
+		if (forgotten.length === 0) return
+		this.#reportStatus()
+		this.checkFeedbacks('fixture_online', 'light_preset_active')
+	}
+
+	#reportStatus(): void {
+		const { status, message } = connectionStatus(this.fixtures.fixtures)
+		// updateStatus is logged by Companion every call, so only report when it changes
+		const summary = `${status}:${message}`
+		if (summary === this.#lastStatusSummary) return
+		this.#lastStatusSummary = summary
+		this.updateStatus(status, message)
 	}
 
 	/** Update fixture state, transmit it, and refresh variables/feedbacks */

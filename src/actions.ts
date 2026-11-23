@@ -20,6 +20,7 @@ export type ActionsSchema = {
 	recall_light_preset: { options: { slot: number } }
 	clear_light_preset: { options: { slot: number } }
 	discover: { options: Record<string, never> }
+	forget_offline_fixtures: { options: Record<string, never> }
 }
 
 /** "All Fixtures" / "Select Fixtures", with the multi-select only shown for the latter */
@@ -215,6 +216,15 @@ export function UpdateActions(self: IkanInstance): void {
 			options: [],
 			callback: async () => {
 				await self.discover()
+			},
+		},
+		forget_offline_fixtures: {
+			name: 'Forget Offline Fixtures',
+			description:
+				'Remove the fixtures that did not answer the last poll, e.g. ones taken out of the rig. A fixture that comes back is found again.',
+			options: [],
+			callback: () => {
+				self.forgetOfflineFixtures()
 			},
 		},
 	})

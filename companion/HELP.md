@@ -1,4 +1,4 @@
-## Ikan Lyra POE Lighting
+## Ikan Lyra POE Lights
 
 Controls Ikan Lyra PoE fixtures over Art-Net or sACN.
 
@@ -10,7 +10,13 @@ and add individual fixture IPs if they are on a different subnet. Separate sever
 
 The connection checks the network for fixtures again every based on the value set in the **Search For Fixtures Interval**. The **Search for Fixtures** action polls on demand.
 
-### Fixture names
+A fixture that stops answering stays in the list as offline (its **Fixture Online** feedback goes false
+and its preset buttons are dimmed). The connection stays OK while any fixture answers, and shows how many are offline.
+
+If a light has been removed for good, run **Forget Offline Fixtures** to remove every fixture that is currently
+offline. One that comes back is found again by the next poll.
+
+### Fixture Names
 
 The fixtures don't report their model, so it is taken from the **Device Name** set in each fixture's
 web interface. You can rename a fixture freely as long as the name still contains the model (e.g.
@@ -23,14 +29,14 @@ With **Auto** each fixture is driven over whichever protocol it is configured fo
 interface. Choosing **Art-Net** or **sACN** sends every fixture that protocol instead, so make sure
 the fixtures are set to match.
 
-### Value scale
+### Value Scale
 
 Intensity, saturation, RGB and green/magenta can be entered and shown either as **Percentage**
 (green/magenta as -100…+100) or as raw **DMX (0-255)** values. This applies to action options, the
 intensity feedback threshold, variables and presets. Changing it does not convert values in actions
 you have already set up, so re-check those after switching.
 
-### Choosing fixtures
+### Choosing Fixtures
 
 Most actions and feedbacks apply to **All Fixtures**, or to **Select Fixtures** and then any number
 of fixtures from the list. With several fixtures selected, a feedback is only true when it is true
@@ -46,7 +52,7 @@ switch modes, since fixtures differ in what they support.
 - **Set Red / Green / Blue**
 - **Set Color Mode** (CCT, HSI or RGB)
 - **Save Light Preset** / **Recall Light Preset** / **Clear Light Preset**
-- **Search for Fixtures**
+- **Search for Fixtures** / **Forget Offline Fixtures**
 
 Setting a color temperature, green/magenta, hue/saturation or RGB value also switches the fixture
 into the matching color mode.
@@ -69,14 +75,14 @@ intensity, color temperature, green/magenta, hue/saturation and RGB values of th
 in a slot, replacing what it held.
 **Recall Light Preset** sends those values back to every fixture in the preset and leaves other
 fixtures alone. Fixtures are remembered by MAC address, so a preset still recalls
-after a fixture changes IP or DMX address. Fixtures that are offline or no longer found are skipped, and
-a preset only shows as active while all of its fixtures are online.
+after a fixture changes IP or DMX address. Fixtures that are offline or no longer found are skipped. A
+preset only shows as active while all of its fixtures are online, leaving out any that have been forgotten.
 
 ### Presets
 
 There is a section for **All Fixtures**, then **Presets**, then one per fixture, ordered by DMX address.
 All Fixtures and each fixture have intensity buttons (full, off, ±, and a rotary encoder); All Fixtures
-adds 3200K and 5600K. Each fixture also gets color temperature buttons and a rotary encoder, plus color
+adds 3200K and 5600K, and **Search** and **Forget Offline** buttons. Each fixture also gets color temperature buttons and a rotary encoder, plus color
 mode, HSI and RGB buttons where the fixture supports them, and status buttons showing the current values.
 
 The **Presets** section has a recall and a save button for light preset slots 1-10. You can change the
@@ -86,8 +92,8 @@ matches it, and save buttons are lit and show RESAVE when the slot already holds
 ### Variables
 
 Per fixture: model/name, IP address, DMX address, universe, protocol, online, color mode,
-intensity, color temperature, green/magenta, hue, saturation and red/green/blue. There is also a
-count of fixtures found.
+intensity, color temperature, green/magenta, hue, saturation and red/green/blue. There are also
+counts of the fixtures found and of those offline.
 
 ### State
 

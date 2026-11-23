@@ -32,15 +32,18 @@ export function captureLightPreset(fixtures: ManagedFixture[]): LightPreset {
 
 /**
  * True when every fixture in the preset is online and still outputs the saved state. Only the values its mode
- * sends are compared, so e.g. RGB values left over from earlier don't matter for a CCT preset.
+ * sends are compared, so e.g. RGB values left over from earlier don't matter for a CCT preset. Fixtures the
+ * module doesn't know (forgotten, or not found since it started) are left out, but at least one must remain.
  */
-export function isLightPresetActive(preset: LightPreset, fixtures: FixtureManager): boolean {
-	const entries = Object.entries(preset)
+export function isLightPresetActive(preset: LightPreset, fixtures: Pick<FixtureManager, 'getFixture'>): boolean {
+	const known = Object.entries(preset).flatMap(([id, saved]) => {
+		const fixture = fixtures.getFixture(id)
+		return fixture ? [{ fixture, saved }] : []
+	})
 	return (
-		entries.length > 0 &&
-		entries.every(([id, saved]) => {
-			const fixture = fixtures.getFixture(id)
-			if (!fixture?.online) return false
+		known.length > 0 &&
+		known.every(({ fixture, saved }) => {
+			if (!fixture.online) return false
 			const mode = effectiveMode(fixture.profile, saved.mode)
 			if (effectiveMode(fixture.profile, fixture.state.mode) !== mode) return false
 			const params = Object.keys(fixture.profile.modes[mode] ?? {}) as FixtureParameter[]

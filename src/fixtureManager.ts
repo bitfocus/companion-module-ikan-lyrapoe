@@ -188,6 +188,20 @@ export class FixtureManager {
 		return changed
 	}
 
+	/**
+	 * Drop every offline fixture, e.g. one removed from the rig, and return them. One that comes back is found
+	 * again by the next poll, under the same MAC-based id.
+	 */
+	forgetOffline(): ManagedFixture[] {
+		const forgotten = [...this.#fixtures.values()].filter((f) => !f.online)
+		if (forgotten.length === 0) return []
+		for (const fixture of forgotten) this.#fixtures.delete(fixture.id)
+		this.#sorted = null
+		this.#pruneTransports()
+		this.#options.onFixturesChanged()
+		return forgotten
+	}
+
 	/** Merge a partial state into each target fixture and transmit */
 	updateState(fixtures: ManagedFixture[], patch: StatePatch): void {
 		for (const fixture of fixtures) {

@@ -6,6 +6,7 @@ import { fromState, levelLabel, type LevelParameter, type ValueScale } from './v
 
 export type VariablesSchema = {
 	fixture_count: number
+	fixtures_offline: number
 	[key: string]: string | number | boolean | undefined
 }
 
@@ -34,6 +35,7 @@ const LEVEL_VARIABLES: Record<string, { param: LevelParameter; name: string }> =
 export function UpdateVariableDefinitions(self: IkanInstance): void {
 	const definitions: CompanionVariableDefinitions<VariablesSchema> = {
 		fixture_count: { name: 'Number of fixtures found' },
+		fixtures_offline: { name: 'Number of fixtures that did not answer the last poll' },
 	}
 	const scale = self.config.valueScale
 	const labels: Record<string, string> = { ...FIXTURE_VARIABLES }
@@ -68,7 +70,11 @@ function fixtureVariableValues(scale: ValueScale, fixture: ManagedFixture): Part
 }
 
 export function UpdateVariableValues(self: IkanInstance, fixtures: ManagedFixture[]): void {
-	const values: Partial<VariablesSchema> = { fixture_count: self.fixtures.fixtures.length }
+	const all = self.fixtures.fixtures
+	const values: Partial<VariablesSchema> = {
+		fixture_count: all.length,
+		fixtures_offline: all.filter((f) => !f.online).length,
+	}
 	for (const fixture of fixtures) Object.assign(values, fixtureVariableValues(self.config.valueScale, fixture))
 	self.setVariableValues(values)
 }
