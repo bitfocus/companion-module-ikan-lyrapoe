@@ -1,10 +1,14 @@
 import { InstanceBase, InstanceStatus, type SomeCompanionConfigField } from '@companion-module/base'
-import { GetConfigFields, type ModuleConfig } from './config.js'
-import { UpdateVariableDefinitions, type VariablesSchema } from './variables.js'
+import { GetConfigFields, parseDiscoveryTargets, type ModuleConfig } from './config.js'
+import { UpdateVariableDefinitions, UpdateVariableValues, type VariablesSchema } from './variables.js'
 import { UpgradeScripts } from './upgrades.js'
 import { UpdateActions, type ActionsSchema } from './actions.js'
 import { UpdateFeedbacks, type FeedbacksSchema } from './feedbacks.js'
 import { UpdatePresets } from './presets.js'
+import { FixtureManager, type ManagedFixture, type StatePatch } from './fixtureManager.js'
+import { createDgramDiscoverySocket } from './api/index.js'
+import { captureLightPreset, LIGHT_PRESET_SLOTS, lightPresetSlotKey, type LightPresets } from './lightPresets.js'
+import { connectionStatus } from './status.js'
 
 export type ModuleSchema = {
 	config: ModuleConfig
@@ -16,33 +20,168 @@ export type ModuleSchema = {
 
 export { UpgradeScripts }
 
-export default class ModuleInstance extends InstanceBase<ModuleSchema> {
-	config!: ModuleConfig // Setup in init()
+const DISCOVERY_TIMEOUT_MS = 2000
+
+export default class IkanInstance extends InstanceBase<ModuleSchema> {
+	config!: ModuleConfig
+	fixtures!: FixtureManager
+
+	#discoveryTimer: NodeJS.Timeout | null = null
+	#discovering = false
+	#lastStatusSummary: string | null = null
 
 	constructor(internal: unknown) {
 		super(internal)
 	}
 
 	async init(config: ModuleConfig): Promise<void> {
+		config.lightPresets ??= {}
 		this.config = config
+		this.fixtures = new FixtureManager({
+			createSocket: createDgramDiscoverySocket,
+			log: (level, message) => this.log(level, message),
+			onFixturesChanged: () => this.#fixturesChanged(),
+		})
+		this.fixtures.setProtocolSetting(config.protocol)
+		this.#fixturesChanged()
 
-		this.updateStatus(InstanceStatus.Ok)
-
-		this.updateActions() // export actions
-		this.updateFeedbacks() // export feedbacks
-		this.updatePresets() // export Presets
-		this.updateVariableDefinitions() // export variable definitions
+		this.updateStatus(InstanceStatus.Connecting, 'Searching for fixtures')
+		// Discovery takes a few seconds; init must return promptly so it runs in the background
+		void this.discover()
+		this.#scheduleDiscovery()
 	}
-	// When module gets deleted
+
 	async destroy(): Promise<void> {
-		this.log('debug', 'destroy')
+		this.#stopDiscoveryTimer()
+		this.fixtures.destroy()
 	}
 
 	async configUpdated(config: ModuleConfig): Promise<void> {
+		// The light presets have no config field, so keep the saved ones if a config arrives without them
+		config.lightPresets ??= this.config.lightPresets
+		const scaleChanged = config.valueScale !== this.config.valueScale
+		const lightPresetsChanged = JSON.stringify(config.lightPresets) !== JSON.stringify(this.config.lightPresets)
 		this.config = config
+		// Option ranges, preset values and variable values are all in the chosen scale
+		if (scaleChanged) this.#fixturesChanged()
+		if (lightPresetsChanged) this.checkFeedbacks('light_preset_active', 'light_preset_saved')
+		this.fixtures.setProtocolSetting(config.protocol)
+		this.#scheduleDiscovery()
+		void this.discover()
 	}
 
-	// Return config fields for web config
+	/** Poll the network for fixtures; refreshes the fixture list and status */
+	async discover(): Promise<void> {
+		if (this.#discovering) return
+		this.#discovering = true
+		try {
+			const changed = await this.fixtures.discover(
+				parseDiscoveryTargets(this.config.discoveryTargets),
+				DISCOVERY_TIMEOUT_MS,
+			)
+			this.#reportStatus()
+			// Light presets only match while all their fixtures are online
+			if (changed) this.checkFeedbacks('fixture_online', 'light_preset_active')
+		} catch (e) {
+			this.#lastStatusSummary = null
+			this.updateStatus(InstanceStatus.UnknownError, `Discovery failed: ${String(e)}`)
+			this.log('error', `Discovery failed: ${String(e)}`)
+		} finally {
+			this.#discovering = false
+		}
+	}
+
+	/** Drop the fixtures that are offline, e.g. ones removed from the rig */
+	forgetOfflineFixtures(): void {
+		const forgotten = this.fixtures.forgetOffline()
+		for (const fixture of forgotten) this.log('info', `Forgot ${fixture.name} at ${fixture.ip}`)
+		if (forgotten.length === 0) return
+		this.#reportStatus()
+		this.checkFeedbacks('fixture_online', 'light_preset_active')
+	}
+
+	#reportStatus(): void {
+		const { status, message } = connectionStatus(this.fixtures.fixtures)
+		// updateStatus is logged by Companion every call, so only report when it changes
+		const summary = `${status}:${message}`
+		if (summary === this.#lastStatusSummary) return
+		this.#lastStatusSummary = summary
+		this.updateStatus(status, message)
+	}
+
+	/** Update fixture state, transmit it, and refresh variables/feedbacks */
+	applyState(fixtures: ManagedFixture[], patch: StatePatch): void {
+		this.fixtures.updateState(fixtures, patch)
+		UpdateVariableValues(this, fixtures)
+		this.checkFeedbacks('color_mode', 'intensity_above')
+		const presets = Object.values(this.config.lightPresets)
+		if (presets.some((preset) => fixtures.some((f) => f.id in preset))) this.checkFeedbacks('light_preset_active')
+	}
+
+	/** Store the current state of the fixtures in the slot, replacing what it held */
+	saveLightPreset(slot: number, fixtures: ManagedFixture[]): void {
+		const key = this.#lightPresetSlotKey(slot)
+		if (!key) return
+		// Refuse rather than overwrite a good preset when, say, discovery hasn't found the fixtures yet
+		if (fixtures.length === 0) {
+			this.log('warn', `Not saving light preset ${key}: no fixtures found`)
+			return
+		}
+		this.#setLightPresets({ ...this.config.lightPresets, [key]: captureLightPreset(fixtures) })
+	}
+
+	recallLightPreset(slot: number): void {
+		const key = this.#lightPresetSlotKey(slot)
+		if (!key) return
+		const preset = this.config.lightPresets[key]
+		if (!preset) {
+			this.log('warn', `Light Preset Slot ${key} is empty`)
+			return
+		}
+		const online = this.fixtures.getFixtures(Object.keys(preset)).filter((f) => f.online)
+		this.applyState(online, (f) => preset[f.id])
+	}
+
+	clearLightPreset(slot: number): void {
+		const key = this.#lightPresetSlotKey(slot)
+		if (!key || !this.config.lightPresets[key]) return
+		const { [key]: _cleared, ...rest } = this.config.lightPresets
+		this.#setLightPresets(rest)
+	}
+
+	#lightPresetSlotKey(slot: number): string | null {
+		const key = lightPresetSlotKey(slot)
+		if (!key) this.log('warn', `Light Preset Slot must be 1-${LIGHT_PRESET_SLOTS}, not "${slot}"`)
+		return key
+	}
+
+	#setLightPresets(lightPresets: LightPresets): void {
+		this.config = { ...this.config, lightPresets }
+		this.saveConfig(this.config)
+		this.checkFeedbacks('light_preset_active', 'light_preset_saved')
+	}
+
+	#stopDiscoveryTimer(): void {
+		if (this.#discoveryTimer) clearInterval(this.#discoveryTimer)
+		this.#discoveryTimer = null
+	}
+
+	#scheduleDiscovery(): void {
+		this.#stopDiscoveryTimer()
+		if (this.config.discoveryInterval > 0) {
+			this.#discoveryTimer = setInterval(() => void this.discover(), this.config.discoveryInterval * 1000)
+		}
+	}
+
+	#fixturesChanged(): void {
+		// Fixture dropdowns are baked into the definitions, so re-export them
+		this.updateActions()
+		this.updateFeedbacks()
+		this.updatePresets()
+		this.updateVariableDefinitions()
+		UpdateVariableValues(this, this.fixtures.fixtures)
+	}
+
 	getConfigFields(): SomeCompanionConfigField[] {
 		return GetConfigFields()
 	}

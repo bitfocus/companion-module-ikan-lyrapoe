@@ -1,0 +1,91 @@
+{
+	"capturedAt": "2026-11-23T21:10:48.022Z",
+	"ip": "192.168.0.180",
+	"artnet": {
+		"pollRequest": "4172742d4e6574000020000e0200",
+		"pollReply": "4172742d4e6574000021c0a800b4361901020000600a00027a7045746832444d582d3531322d4200000000004c435831302d504f45204261636b6c696768740000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006363736d617274000000000000000000459067cc323d000001020100012c00000080f3da55e9fbb4dfcf2e0754ebdf7000000000000000000000000000000000000180000000080000000200000000000000000000000000000000000080f3da55e9fbc0a800b400dd8000000040000000000000000000000000000000000000000000",
+		"pollReplySourcePort": 6454,
+		"decoded": {
+			"shortName": "Eth2DMX-512-B",
+			"longName": "LCX10-POE Backlight",
+			"nodeReport": "ccsmart",
+			"firmwareVersion": 258,
+			"oem": 24586,
+			"estaManufacturer": 28794,
+			"status1": 2,
+			"portAddress": 0,
+			"sacnOutput": false,
+			"mac": "80:f3:da:55:e9:fb"
+		}
+	},
+	"rdm": {
+		"todRequest": "4172742d4e6574000080000e0000000000000000000000010000000000000000000000000000000000000000000000000000000000000000",
+		"todData": null,
+		"uids": [],
+		"gets": []
+	},
+	"http": [
+		{
+			"method": "GET",
+			"path": "/",
+			"requestBody": null,
+			"status": 200,
+			"contentType": "text/html",
+			"body": null,
+			"htmlTitle": "ArtNet Node Configs",
+			"htmlLength": 20034
+		},
+		{
+			"method": "POST",
+			"path": "/artnet_cfg_load",
+			"requestBody": {
+				"port": 0
+			},
+			"status": 200,
+			"contentType": "text/html",
+			"body": "{\"dmx\":\"1\",\"universe_artnet\":\"0\",\"universe_sacn\":\"1\",\"protocol\":0 }",
+			"htmlTitle": null,
+			"htmlLength": null
+		},
+		{
+			"method": "GET",
+			"path": "/artnet_cfg_load",
+			"requestBody": null,
+			"status": 405,
+			"contentType": "text/html",
+			"body": "Request method for this URI is not handled by server",
+			"htmlTitle": null,
+			"htmlLength": null
+		},
+		{
+			"method": "GET",
+			"path": "/api/session",
+			"requestBody": null,
+			"status": 404,
+			"contentType": "text/html",
+			"body": "This URI does not exist",
+			"htmlTitle": null,
+			"htmlLength": null
+		},
+		{
+			"method": "GET",
+			"path": "/api/config",
+			"requestBody": null,
+			"status": 404,
+			"contentType": "text/html",
+			"body": "This URI does not exist",
+			"htmlTitle": null,
+			"htmlLength": null
+		},
+		{
+			"method": "GET",
+			"path": "/api/snapshot",
+			"requestBody": null,
+			"status": 404,
+			"contentType": "text/html",
+			"body": "This URI does not exist",
+			"htmlTitle": null,
+			"htmlLength": null
+		}
+	]
+}

@@ -1,3 +1,101 @@
-## Your module
+## Ikan Lyra POE Lights
 
-Write some help for your users here!
+Controls Ikan Lyra PoE fixtures over Art-Net or sACN.
+
+### Discovery
+
+A single connection manages every fixture on the network. Fixtures are found with an Art-Net poll
+(they answer even when set to sACN). Set **Poll addresses** to your subnet's broadcast address (or `255.255.255.255`),
+and add individual fixture IPs if they are on a different subnet. Separate several addresses with commas.
+
+The connection checks the network for fixtures again every based on the value set in the **Search For Fixtures Interval**. The **Search for Fixtures** action polls on demand.
+
+A fixture that stops answering stays in the list as offline (its **Fixture Online** feedback goes false
+and its preset buttons are dimmed). The connection stays OK while any fixture answers, and shows how many are offline.
+
+If a light has been removed for good, run **Forget Offline Fixtures** to remove every fixture that is currently
+offline. One that comes back is found again by the next poll.
+
+### Fixture Names
+
+The fixtures don't report their model, so it is taken from the **Device Name** set in each fixture's
+web interface. You can rename a fixture freely as long as the name still contains the model (e.g.
+`LCX10-POE Key`). If it doesn't, the fixture is still controllable but every control is offered
+(CCT, HSI and RGB), whether or not that fixture supports it.
+
+### Protocol
+
+With **Auto** each fixture is driven over whichever protocol it is configured for in its web
+interface. Choosing **Art-Net** or **sACN** sends every fixture that protocol instead, so make sure
+the fixtures are set to match.
+
+### Value Scale
+
+Intensity, saturation, RGB and green/magenta can be entered and shown either as **Percentage**
+(green/magenta as -100…+100) or as raw **DMX (0-255)** values. This applies to action options, the
+intensity feedback threshold, variables and presets. Changing it does not convert values in actions
+you have already set up, so re-check those after switching.
+
+### Choosing Fixtures
+
+Most actions and feedbacks apply to **All Fixtures**, or to **Select Fixtures** and then any number
+of fixtures from the list. With several fixtures selected, a feedback is only true when it is true
+for all of them. **Set Color Mode** and the **Color Mode** feedback only list fixtures that can
+switch modes, since fixtures differ in what they support.
+
+### Actions
+
+- **Set Intensity** / **Adjust Intensity**
+- **Set Color Temperature** / **Adjust Color Temperature** (limited to each fixture's Kelvin range)
+- **Set Green/Magenta**
+- **Set Hue / Saturation**
+- **Set Red / Green / Blue**
+- **Set Color Mode** (CCT, HSI or RGB)
+- **Save Light Preset** / **Recall Light Preset** / **Clear Light Preset**
+- **Search for Fixtures** / **Forget Offline Fixtures**
+
+Setting a color temperature, green/magenta, hue/saturation or RGB value also switches the fixture
+into the matching color mode.
+
+### Feedbacks
+
+- **Fixture Online** — the fixture answered the most recent poll
+- **Color Mode** — the fixture is in the chosen mode
+- **Intensity** — the intensity is above a threshold
+- **Light Preset Active** — every fixture in the preset still holds the saved values
+- **Light Preset Saved** — the slot holds a saved preset
+
+### Light Presets
+
+Presets can be stored with the connection's configuration, so they survive restarts and are included
+when you export your setup. There are 100 available preset slots.
+
+**Save Light Preset** stores the current mode,
+intensity, color temperature, green/magenta, hue/saturation and RGB values of the chosen fixtures
+in a slot, replacing what it held.
+**Recall Light Preset** sends those values back to every fixture in the preset and leaves other
+fixtures alone. Fixtures are remembered by MAC address, so a preset still recalls
+after a fixture changes IP or DMX address. Fixtures that are offline or no longer found are skipped. A
+preset only shows as active while all of its fixtures are online, leaving out any that have been forgotten.
+
+### Presets
+
+There is a section for **All Fixtures**, then **Presets**, then one per fixture, ordered by DMX address.
+All Fixtures and each fixture have intensity buttons (full, off, ±, and a rotary encoder); All Fixtures
+adds 3200K and 5600K, and **Search** and **Forget Offline** buttons. Each fixture also gets color temperature buttons and a rotary encoder, plus color
+mode, HSI and RGB buttons where the fixture supports them, and status buttons showing the current values.
+
+The **Presets** section has a recall and a save button for light preset slots 1-10. You can change the
+slot in the action to use the others. Recall buttons are lit while every fixture in the preset still
+matches it, and save buttons are lit and show RESAVE when the slot already holds a preset.
+
+### Variables
+
+Per fixture: model/name, IP address, DMX address, universe, protocol, online, color mode,
+intensity, color temperature, green/magenta, hue, saturation and red/green/blue. There are also
+counts of the fixtures found and of those offline.
+
+### State
+
+These fixtures cannot report their levels back. The variables and feedbacks reflect the last values
+this connection sent; if another Art-Net/sACN source drives the same addresses they will drift.

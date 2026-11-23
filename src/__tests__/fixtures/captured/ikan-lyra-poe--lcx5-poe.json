@@ -1,0 +1,394 @@
+{
+	"capturedAt": "2026-11-23T21:10:44.324Z",
+	"ip": "192.168.0.112",
+	"artnet": {
+		"pollRequest": "4172742d4e6574000020000e0200",
+		"pollReply": "4172742d4e6574000021c0a80070193601010000194100e24119496b616e204c7972612d506f4500000000004c4358352d504f4500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000018000000000000000000000000000000006000000000000000000005c013b3a05a800000000011f19413b3a05a80000000000000000000000000000000000000000",
+		"pollReplySourcePort": 6454,
+		"decoded": {
+			"shortName": "Ikan Lyra-PoE",
+			"longName": "LCX5-POE",
+			"nodeReport": "",
+			"firmwareVersion": 257,
+			"oem": 6465,
+			"estaManufacturer": 6465,
+			"status1": 226,
+			"portAddress": 6,
+			"sacnOutput": false,
+			"mac": "5c:01:3b:3a:05:a8"
+		}
+	},
+	"rdm": {
+		"todRequest": "4172742d4e6574000080000e0000000000000000000000010600000000000000000000000000000000000000000000000000000000000000",
+		"todData": "4172742d4e6574000081000e0101000000000000010000060001000119413b3a05a8",
+		"uids": ["19413b3a05a8"],
+		"gets": [
+			{
+				"uid": "19413b3a05a8",
+				"pid": "SUPPORTED_PARAMETERS",
+				"param": "",
+				"request": "4172742d4e6574000083000e010000000000000000000006011819413b3a05a87ff0000000010001000000200050000442",
+				"response": "4172742d4e6574000083000e010000000000000000000006013c7ff00000000119413b3a05a80000000000210050240020003000500051006000800081008200c000e000e100f00120012110000400040104020b31",
+				"decoded": {
+					"responseType": 0,
+					"commandClass": 33,
+					"pid": 80,
+					"data": "0020003000500051006000800081008200c000e000e100f0012001211000040004010402"
+				}
+			},
+			{
+				"uid": "19413b3a05a8",
+				"pid": "DEVICE_INFO",
+				"param": "",
+				"request": "4172742d4e6574000083000e010000000000000000000006011819413b3a05a87ff0000000010101000000200060000453",
+				"response": "4172742d4e6574000083000e010000000000000000000006012b7ff00000000119413b3a05a80100000000210060130100000701010000021000040104000500000004a3",
+				"decoded": {
+					"responseType": 0,
+					"commandClass": 33,
+					"pid": 96,
+					"data": "01000007010100000210000401040005000000"
+				}
+			},
+			{
+				"uid": "19413b3a05a8",
+				"pid": "DEVICE_MODEL_DESCRIPTION",
+				"param": "",
+				"request": "4172742d4e6574000083000e010000000000000000000006011819413b3a05a87ff0000000010201000000200080000474",
+				"response": "4172742d4e6574000083000e01000000000000000000000601207ff00000000119413b3a05a80200000000210080084c4358352d504f4506b1",
+				"decoded": {
+					"responseType": 0,
+					"commandClass": 33,
+					"pid": 128,
+					"data": "4c4358352d504f45"
+				}
+			},
+			{
+				"uid": "19413b3a05a8",
+				"pid": "MANUFACTURER_LABEL",
+				"param": "",
+				"request": "4172742d4e6574000083000e010000000000000000000006011819413b3a05a87ff0000000010301000000200081000476",
+				"response": "4172742d4e6574000083000e010000000000000000000006011c7ff00000000119413b3a05a8030000000021008104496b616e0601",
+				"decoded": {
+					"responseType": 0,
+					"commandClass": 33,
+					"pid": 129,
+					"data": "496b616e"
+				}
+			},
+			{
+				"uid": "19413b3a05a8",
+				"pid": "DEVICE_LABEL",
+				"param": "",
+				"request": "4172742d4e6574000083000e010000000000000000000006011819413b3a05a87ff0000000010401000000200082000478",
+				"response": "4172742d4e6574000083000e01000000000000000000000601207ff00000000119413b3a05a80400000000210082084c4358352d504f4506b5",
+				"decoded": {
+					"responseType": 0,
+					"commandClass": 33,
+					"pid": 130,
+					"data": "4c4358352d504f45"
+				}
+			},
+			{
+				"uid": "19413b3a05a8",
+				"pid": "SOFTWARE_VERSION_LABEL",
+				"param": "",
+				"request": "4172742d4e6574000083000e010000000000000000000006011819413b3a05a87ff00000000105010000002000c00004b7",
+				"response": "4172742d4e6574000083000e010000000000000000000006011f7ff00000000119413b3a05a805000000002100c007566572322e313006b3",
+				"decoded": {
+					"responseType": 0,
+					"commandClass": 33,
+					"pid": 192,
+					"data": "566572322e3130"
+				}
+			},
+			{
+				"uid": "19413b3a05a8",
+				"pid": "DMX_PERSONALITY",
+				"param": "",
+				"request": "4172742d4e6574000083000e010000000000000000000006011819413b3a05a87ff00000000106010000002000e00004d8",
+				"response": "4172742d4e6574000083000e010000000000000000000006011a7ff00000000119413b3a05a806000000002100e002010404e1",
+				"decoded": {
+					"responseType": 0,
+					"commandClass": 33,
+					"pid": 224,
+					"data": "0104"
+				}
+			},
+			{
+				"uid": "19413b3a05a8",
+				"pid": "DMX_START_ADDRESS",
+				"param": "",
+				"request": "4172742d4e6574000083000e010000000000000000000006011819413b3a05a87ff00000000107010000002000f00004e9",
+				"response": "4172742d4e6574000083000e010000000000000000000006011a7ff00000000119413b3a05a807000000002100f002000504f2",
+				"decoded": {
+					"responseType": 0,
+					"commandClass": 33,
+					"pid": 240,
+					"data": "0005"
+				}
+			},
+			{
+				"uid": "19413b3a05a8",
+				"pid": "SLOT_INFO",
+				"param": "",
+				"request": "4172742d4e6574000083000e010000000000000000000006011819413b3a05a87ff000000001080100000020012000041b",
+				"response": "4172742d4e6574000083000e010000000000000000000006012c7ff00000000119413b3a05a808000000002101201400000000010001000208000200ffff0003040502065d",
+				"decoded": {
+					"responseType": 0,
+					"commandClass": 33,
+					"pid": 288,
+					"data": "00000000010001000208000200ffff0003040502"
+				}
+			},
+			{
+				"uid": "19413b3a05a8",
+				"pid": "DEVICE_HOURS",
+				"param": "",
+				"request": "4172742d4e6574000083000e010000000000000000000006011819413b3a05a87ff00000000109010000002004000003ff",
+				"response": "4172742d4e6574000083000e010000000000000000000006011c7ff00000000119413b3a05a809000000002104000400000098049f",
+				"decoded": {
+					"responseType": 0,
+					"commandClass": 33,
+					"pid": 1024,
+					"data": "00000098"
+				}
+			},
+			{
+				"uid": "19413b3a05a8",
+				"pid": "LAMP_HOURS",
+				"param": "",
+				"request": "4172742d4e6574000083000e010000000000000000000006011819413b3a05a87ff0000000010a01000000200401000401",
+				"response": "4172742d4e6574000083000e010000000000000000000006011c7ff00000000119413b3a05a80a0000000021040104000000000409",
+				"decoded": {
+					"responseType": 0,
+					"commandClass": 33,
+					"pid": 1025,
+					"data": "00000000"
+				}
+			},
+			{
+				"uid": "19413b3a05a8",
+				"pid": "LAMP_STRIKES",
+				"param": "",
+				"request": "4172742d4e6574000083000e010000000000000000000006011819413b3a05a87ff0000000010b01000000200402000403",
+				"response": "4172742d4e6574000083000e010000000000000000000006011c7ff00000000119413b3a05a80b000000002104020400000000040b",
+				"decoded": {
+					"responseType": 0,
+					"commandClass": 33,
+					"pid": 1026,
+					"data": "00000000"
+				}
+			},
+			{
+				"uid": "19413b3a05a8",
+				"pid": "DMX_PERSONALITY_DESCRIPTION",
+				"param": "01",
+				"request": "4172742d4e6574000083000e010000000000000000000006011919413b3a05a87ff0000000010c010000002000e1010104e2",
+				"response": "4172742d4e6574000083000e01000000000000000000000601277ff00000000119413b3a05a80c000000002100e10f01000434434820556c74696d6174650926",
+				"decoded": {
+					"responseType": 0,
+					"commandClass": 33,
+					"pid": 225,
+					"data": "01000434434820556c74696d617465"
+				}
+			},
+			{
+				"uid": "19413b3a05a8",
+				"pid": "DMX_PERSONALITY_DESCRIPTION",
+				"param": "02",
+				"request": "4172742d4e6574000083000e010000000000000000000006011919413b3a05a87ff0000000010d010000002000e1010204e4",
+				"response": "4172742d4e6574000083000e01000000000000000000000601227ff00000000119413b3a05a80d000000002100e10a0200033343482048534906bb",
+				"decoded": {
+					"responseType": 0,
+					"commandClass": 33,
+					"pid": 225,
+					"data": "02000333434820485349"
+				}
+			},
+			{
+				"uid": "19413b3a05a8",
+				"pid": "DMX_PERSONALITY_DESCRIPTION",
+				"param": "03",
+				"request": "4172742d4e6574000083000e010000000000000000000006011919413b3a05a87ff0000000010e010000002000e1010304e6",
+				"response": "4172742d4e6574000083000e01000000000000000000000601227ff00000000119413b3a05a80e000000002100e10a0300043443482052474206b6",
+				"decoded": {
+					"responseType": 0,
+					"commandClass": 33,
+					"pid": 225,
+					"data": "03000434434820524742"
+				}
+			},
+			{
+				"uid": "19413b3a05a8",
+				"pid": "DMX_PERSONALITY_DESCRIPTION",
+				"param": "04",
+				"request": "4172742d4e6574000083000e010000000000000000000006011919413b3a05a87ff0000000010f010000002000e1010404e8",
+				"response": "4172742d4e6574000083000e01000000000000000000000601227ff00000000119413b3a05a80f000000002100e10a0400023243482043435406b3",
+				"decoded": {
+					"responseType": 0,
+					"commandClass": 33,
+					"pid": 225,
+					"data": "04000232434820434354"
+				}
+			},
+			{
+				"uid": "19413b3a05a8",
+				"pid": "SLOT_DESCRIPTION",
+				"param": "0000",
+				"request": "4172742d4e6574000083000e010000000000000000000006011a19413b3a05a87ff00000000110010000002001210200000428",
+				"response": "4172742d4e6574000083000e01000000000000000000000601297ff00000000119413b3a05a81000000000210121110000496e74656e73697479202f205265640997",
+				"decoded": {
+					"responseType": 0,
+					"commandClass": 33,
+					"pid": 289,
+					"data": "0000496e74656e73697479202f20526564"
+				}
+			},
+			{
+				"uid": "19413b3a05a8",
+				"pid": "SLOT_DESCRIPTION",
+				"param": "0001",
+				"request": "4172742d4e6574000083000e010000000000000000000006011a19413b3a05a87ff0000000011101000000200121020001042a",
+				"response": "4172742d4e6574000083000e010000000000000000000006012b7ff00000000119413b3a05a81100000000210121130001434354202f20487565202f20477265656e0917",
+				"decoded": {
+					"responseType": 0,
+					"commandClass": 33,
+					"pid": 289,
+					"data": "0001434354202f20487565202f20477265656e"
+				}
+			},
+			{
+				"uid": "19413b3a05a8",
+				"pid": "SLOT_DESCRIPTION",
+				"param": "0002",
+				"request": "4172742d4e6574000083000e010000000000000000000006011a19413b3a05a87ff0000000011201000000200121020002042c",
+				"response": "4172742d4e6574000083000e01000000000000000000000601317ff00000000119413b3a05a81200000000210121190002472d4d202f2053617475726174696f6e202f20426c75650bab",
+				"decoded": {
+					"responseType": 0,
+					"commandClass": 33,
+					"pid": 289,
+					"data": "0002472d4d202f2053617475726174696f6e202f20426c7565"
+				}
+			},
+			{
+				"uid": "19413b3a05a8",
+				"pid": "SLOT_DESCRIPTION",
+				"param": "0003",
+				"request": "4172742d4e6574000083000e010000000000000000000006011a19413b3a05a87ff0000000011301000000200121020003042e",
+				"response": "4172742d4e6574000083000e010000000000000000000006012d7ff00000000119413b3a05a813000000002101211500034d6f64653a204343542c204853492c205247420964",
+				"decoded": {
+					"responseType": 0,
+					"commandClass": 33,
+					"pid": 289,
+					"data": "00034d6f64653a204343542c204853492c20524742"
+				}
+			}
+		]
+	},
+	"http": [
+		{
+			"method": "GET",
+			"path": "/",
+			"requestBody": null,
+			"status": 200,
+			"contentType": "text/html; charset=utf-8",
+			"body": null,
+			"htmlTitle": "ikan POE LIGHT - Web Manager",
+			"htmlLength": 45059
+		},
+		{
+			"method": "POST",
+			"path": "/artnet_cfg_load",
+			"requestBody": {
+				"port": 0
+			},
+			"status": 404,
+			"contentType": "text/html",
+			"body": "Nothing matches the given URI",
+			"htmlTitle": null,
+			"htmlLength": null
+		},
+		{
+			"method": "GET",
+			"path": "/artnet_cfg_load",
+			"requestBody": null,
+			"status": 404,
+			"contentType": "text/html",
+			"body": "Nothing matches the given URI",
+			"htmlTitle": null,
+			"htmlLength": null
+		},
+		{
+			"method": "GET",
+			"path": "/api/session",
+			"requestBody": null,
+			"status": 200,
+			"contentType": "application/json",
+			"body": "{\"authenticated\":false}",
+			"htmlTitle": null,
+			"htmlLength": null
+		},
+		{
+			"method": "GET",
+			"path": "/api/config",
+			"requestBody": null,
+			"status": 401,
+			"contentType": "application/json",
+			"body": "{\"message\":\"Authentication required\"}",
+			"htmlTitle": null,
+			"htmlLength": null
+		},
+		{
+			"method": "GET",
+			"path": "/api/snapshot",
+			"requestBody": null,
+			"status": 401,
+			"contentType": "application/json",
+			"body": "{\"message\":\"Authentication required\"}",
+			"htmlTitle": null,
+			"htmlLength": null
+		},
+		{
+			"method": "POST",
+			"path": "/api/login",
+			"requestBody": {
+				"password": "<redacted>"
+			},
+			"status": 200,
+			"body": "{\"ok\":true,\"token\":\"<redacted>\"}"
+		},
+		{
+			"method": "GET",
+			"path": "/api/session",
+			"requestBody": null,
+			"status": 200,
+			"contentType": "application/json",
+			"body": "{\"authenticated\":true}",
+			"htmlTitle": null,
+			"htmlLength": null,
+			"authenticated": true
+		},
+		{
+			"method": "GET",
+			"path": "/api/config",
+			"requestBody": null,
+			"status": 200,
+			"contentType": "application/json",
+			"body": "{\"web_port\":80,\"dmx_address\":5,\"artnet_universe\":6,\"output_source\":\"artnet\",\"rdm_enable\":1,\"sacn_universe\":1,\"ip_mode\":\"dhcp\",\"ip_address\":\"192.168.0.112\",\"netmask\":\"255.255.255.0\",\"gateway\":\"192.168.0.1\",\"web_port\":80,\"device_name\":\"LCX5-POE\",\"fw_version\":\"1.0.0.6\",\"fw_compile\":\"Nov 20 2026 14:36:40\",\"device_name\":\"LCX5-POE\"}",
+			"htmlTitle": null,
+			"htmlLength": null,
+			"authenticated": true
+		},
+		{
+			"method": "GET",
+			"path": "/api/snapshot",
+			"requestBody": null,
+			"status": 200,
+			"contentType": "application/json",
+			"body": "{\"config\":{\"web_port\":80,\"dmx_address\":5,\"artnet_universe\":6,\"output_source\":\"artnet\",\"rdm_enable\":1,\"sacn_universe\":1,\"ip_mode\":\"dhcp\",\"ip_address\":\"192.168.0.112\",\"netmask\":\"255.255.255.0\",\"gateway\":\"192.168.0.1\",\"web_port\":80,\"device_name\":\"LCX5-POE\",\"fw_version\":\"1.0.0.6\",\"fw_compile\":\"Nov 20 2026 14:36:40\"},\"status\":{\"version\":\"5dbc134-dirty\",\"project_name\":\"artnet_project_custom\",\"compile_date\":\"Nov 20 2026\",\"compile_time\":\"14:35:59\",\"idf_version\":\"v5.5.3\",\"partition_label\":\"ota_1\",\"partition_address\":\"0x00120000\",\"ota_running\":false}}",
+			"htmlTitle": null,
+			"htmlLength": null,
+			"authenticated": true
+		}
+	]
+}
