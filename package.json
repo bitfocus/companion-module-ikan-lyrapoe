@@ -10,6 +10,8 @@
 		"build": "rimraf dist && run build:main",
 		"build:main": "tsc -p tsconfig.build.json",
 		"dev": "tsc -p tsconfig.build.json --watch",
+		"test": "vitest --run",
+		"test:watch": "vitest",
 		"lint:raw": "eslint",
 		"lint": "run lint:raw ."
 	},
@@ -28,13 +30,15 @@
 	"devDependencies": {
 		"@companion-module/tools": "^3.2.1",
 		"@types/node": "^26.6.6",
+		"@vitest/eslint-plugin": "^1.6.28",
 		"eslint": "^10.15.0",
 		"husky": "^9.1.7",
 		"lint-staged": "^16.4.0",
 		"prettier": "^3.10.1",
 		"rimraf": "^6.1.4",
 		"typescript": "~6.0.3",
-		"typescript-eslint": "^8.73.0"
+		"typescript-eslint": "^8.73.0",
+		"vitest": "^4.1.12"
 	},
 	"prettier": "@companion-module/tools/.prettierrc.json",
 	"lint-staged": {
