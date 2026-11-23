@@ -85,13 +85,13 @@ describe('presets', () => {
 		built = build('percent')
 	})
 
-	it('has a section for all fixtures, one per fixture and one for light presets', () => {
+	it('has a section for all fixtures, then light presets, then one per fixture', () => {
 		expect(built.structure.map((s) => s.name)).toEqual([
 			'All Fixtures',
+			'Presets',
 			'LCX10-POE Backlight (DMX 1)',
 			'LCX5-POE (DMX 5)',
 			'Backlight 1 (LBX8) (DMX 34)',
-			'Light Presets',
 		])
 	})
 

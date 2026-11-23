@@ -447,7 +447,7 @@ function buildLightPresetSection(presets: CompanionPresetDefinitions<ModuleSchem
 
 	return {
 		id: 'light_presets',
-		name: 'Light Presets',
+		name: 'Presets',
 		definitions: [
 			{
 				id: 'light_presets_recall',
@@ -472,8 +472,8 @@ export function UpdatePresets(self: IkanInstance): void {
 	const scale = self.config.valueScale
 	const structure = [
 		buildSection(presets, scale, 'all', 'All Fixtures', null),
-		...self.fixtures.fixtures.map((f) => buildSection(presets, scale, f.id, `${f.name} (DMX ${f.dmx.dmxAddress})`, f)),
 		buildLightPresetSection(presets),
+		...self.fixtures.fixtures.map((f) => buildSection(presets, scale, f.id, `${f.name} (DMX ${f.dmx.dmxAddress})`, f)),
 	]
 	self.setPresetDefinitions(structure, presets)
 }

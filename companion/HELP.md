@@ -74,14 +74,14 @@ a preset only shows as active while all of its fixtures are online.
 
 ### Presets
 
-There is a section for **All Fixtures** and one per fixture, ordered by DMX address. Each has
-intensity buttons (full, off, ±, and a rotary encoder); All Fixtures adds 3200K and 5600K. Each
-fixture also gets color temperature buttons and a rotary encoder, plus color mode, HSI and RGB buttons where the fixture supports them,
-and status buttons showing the current values.
+There is a section for **All Fixtures**, then **Presets**, then one per fixture, ordered by DMX address.
+All Fixtures and each fixture have intensity buttons (full, off, ±, and a rotary encoder); All Fixtures
+adds 3200K and 5600K. Each fixture also gets color temperature buttons and a rotary encoder, plus color
+mode, HSI and RGB buttons where the fixture supports them, and status buttons showing the current values.
 
-The **Light Presets** section has a recall and a save button for slots 1-10. You can change the slot in
-the action to use the others. Recall buttons are lit while every fixture in the preset still matches it,
-and save buttons are lit and show OVERWRITE when the slot already holds a preset.
+The **Presets** section has a recall and a save button for light preset slots 1-10. You can change the
+slot in the action to use the others. Recall buttons are lit while every fixture in the preset still
+matches it, and save buttons are lit and show RESAVE when the slot already holds a preset.
 
 ### Variables
 
